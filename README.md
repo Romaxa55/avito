@@ -1,0 +1,2 @@
+# avito
+Avito Parser Messages
