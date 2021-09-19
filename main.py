@@ -3,6 +3,13 @@ import requests
 from bs4 import BeautifulSoup
 
 
+def get_urls_objects(soup):
+    result = {}
+    for tag in soup.find_all("div", attrs={"data-marker": "item"}):
+        id = tag.get('data-item-id')
+        result[id] = 'https://www.avito.ru' + tag.find('a').get('href')
+    return result
+
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
 headers = {
@@ -17,6 +24,4 @@ r = s.get(CONST_URL, headers=headers)
 #     f.write(r.content)
 
 soup = BeautifulSoup(r.content, 'lxml')
-for tag in soup.find_all(class_="iva-item-titleStep-_CxvN"):
-        print("{0}: {1}".format(tag.name, tag.find('a').get('href')))
-
+list_objects = get_urls_objects(soup) #list new obgects
