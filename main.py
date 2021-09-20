@@ -25,3 +25,4 @@ r = s.get(CONST_URL, headers=headers)
 
 soup = BeautifulSoup(r.content, 'lxml')
 list_objects = get_urls_objects(soup) #list new obgects
+print(list_objects)
