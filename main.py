@@ -2,7 +2,7 @@
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
-
+#hello Roma
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 DEBUG = True
 
