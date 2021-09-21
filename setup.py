@@ -6,7 +6,7 @@ setup(
     packages=[''],
     url='',
     license='',
-    author='a19515436',
+    author='Roman Shamagin',
     author_email='',
     description=''
 )
