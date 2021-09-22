@@ -46,6 +46,7 @@ def get_url(url):
     s = requests.session()
     s.headers.update(headers)
     r = s.get(url, headers=headers)
+    print("PARSED URL: ", url)
     if DEBUG:
         Path("tmp/").mkdir(parents=True, exist_ok=True)
         with open(f'tmp/{url[-10:]}.html', 'wb') as f:
@@ -56,6 +57,7 @@ def get_url(url):
 #Функия возращает ссылки для каждого найденого обявления
 def get_urls_objects(soup):
     result = {}
+    print("Parsed URLS...")
     for tag in soup.find_all("div", attrs={"data-marker": "item"}):
         id = tag.get('data-item-id')
         result[id] = 'https://www.avito.ru' + tag.find('a').get('href')
@@ -66,16 +68,19 @@ def get_one_from_list_objects(soup):
     # в переменую soup передается лист
     if DEBUG:
         i = 0
-
     result = {}  # обявил переменную ресульт как обект словарь
     for id in soup.keys():
-        url = soup[id] #
+        print("Parsed url id: ", id)
+        url = soup[id]
         data = get_url(url)
         title = data.find(class_="title-info-main").text.strip()
         price = data.find(class_="js-item-price").get('content')
         description = data.find(class_="item-description-text").text.strip()
         list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
         result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description}
+        print("\nRESULT:")
+        print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
+        print("\n")
         if DEBUG: # если включен дебаг, то сбрасываем цикл на 2-м объявлении
             i += 1
             if i ==2:
@@ -84,6 +89,7 @@ def get_one_from_list_objects(soup):
     return result
 
 logger.info("\n\nStart application")
+print("\nStart app wuth UserAgent: ", UserAgentNow)
 
 # Получили html код страницы и запихнули в переменую soup
 soup = get_url(CONST_URL)
