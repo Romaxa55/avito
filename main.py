@@ -20,8 +20,9 @@ CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI
             "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
 # режим отладки вкл/выкл
-DEBUG = True
-
+DEBUG = False
+ua = UserAgent(cache=True)
+UserAgentNow = ua.random
 # Добавил логер для отладки приложения, пишется все в app.log
 # get named logger
 logger = logging.getLogger(__name__)
@@ -41,8 +42,7 @@ logger.setLevel(logging.DEBUG)
 
 # Функция get запроса, возвращает объект  html страницы готовый для парсинга
 def get_url(url):
-    ua = UserAgent(cache=True)
-    headers = {"User-Agent": ua.random}
+    headers = {"User-Agent": UserAgentNow}
     s = requests.session()
     s.headers.update(headers)
     r = s.get(url, headers=headers)
