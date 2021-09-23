@@ -22,11 +22,13 @@ import datetime
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
-# Сколько дней хранить архив в базе
-CONST_ARCHIVE_DAYS = 5
+# Колличество обявлений который спарим за раз, от 1 до 50
+CONST_NUM = 10
+
 # режим отладки вкл/выкл
 DEBUG = False
 UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
+
 # Добавил логер для отладки приложения, пишется все в app.log
 # get named logger
 logger = logging.getLogger(__name__)
@@ -70,8 +72,7 @@ def get_urls_objects(soup):
 # Функция парсит обявление и возращает в виде списка параметра см result[id] ниже
 def get_one_from_list_objects(soup):
     # в переменую soup передается лист
-    if DEBUG:
-        i = 0
+    i = 0
     result = {}  # обявил переменную ресульт как обект словарь
     for id in soup.keys():
         print("Parsed url id: ", id)
@@ -98,11 +99,10 @@ def get_one_from_list_objects(soup):
         except(BeautifulSoup, EnvironmentError) as e:
             print("Exception is :", e)
             print()
-        if DEBUG: # если включен дебаг, то сбрасываем цикл на 2-м объявлении
-            i += 1
-            if i == 2:
-                break
-        sleep(10)
+        i += 1
+        if i == CONST_NUM:
+            break
+        sleep(3)
     return result
 
 def SQLite3_Database(db, data):
