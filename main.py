@@ -70,16 +70,24 @@ def get_one_from_list_objects(soup):
     result = {}  # обявил переменную ресульт как обект словарь
     for id in soup.keys():
         print("Parsed url id: ", id)
+        price = "Цена не указана"
+        description = "Описание нет"
         url = soup[id]
-        data = get_url(url)
-        title = data.find(class_="title-info-main").text.strip()
-        price = data.find(class_="js-item-price").get('content')
-        description = data.find(class_="item-description-text").text.strip()
-        list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
-        result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description}
-        print("\nRESULT:")
-        print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
-        print("\n")
+        try:
+            data = get_url(url)
+            title = data.find(class_="title-info-main").text.strip()
+            if data.find(class_="js-item-price").get('content'):
+                price = data.find(class_="js-item-price").get('content')
+            if data.find(class_="item-description-text"):
+                description = data.find(class_="item-description-text").text.strip()
+            list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
+            result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description}
+            print("\nRESULT:")
+            print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
+            print("\n")
+        except(BeautifulSoup, EnvironmentError) as e:
+            print("Exception is :", e)
+            print()
         if DEBUG: # если включен дебаг, то сбрасываем цикл на 2-м объявлении
             i += 1
             if i ==2:
