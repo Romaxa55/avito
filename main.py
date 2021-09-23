@@ -16,8 +16,10 @@ from logging import Formatter
 
 # Ссылка, с которой будем работать, строка в ссылке ASgCAQECA... -
 # это base64 в ней зашифрованы параметры поиска от 500руб до 5000руб
-CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
-            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
+# CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
+#            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
+CONST_URL = "https://www.avito.ru/sankt-peterburg/avtomobili/audi/a4-ASgBAgICAkTgtg3elyjitg3inSg?cd=1&radius=0"
+
 
 # режим отладки вкл/выкл
 DEBUG = False
