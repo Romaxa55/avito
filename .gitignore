@@ -3,3 +3,4 @@
 /app.log
 /venv/
 /.idea/
+/*.db
