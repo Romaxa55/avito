@@ -9,6 +9,9 @@ from pathlib import Path    # Модуль для манипуляция с ди
 from logging.handlers import TimedRotatingFileHandler
 from logging import Formatter
 # from fake_useragent import UserAgent
+import sqlite3
+import datetime
+
 
 #hello Roma
 #hello Roman
@@ -70,9 +73,9 @@ def get_one_from_list_objects(soup):
     result = {}  # обявил переменную ресульт как обект словарь
     for id in soup.keys():
         print("Parsed url id: ", id)
-        price = "Цена не указана"
+        price = 0
         description = "Описание нет"
-        images = [] #Динамический список
+        tmp = [] #Динамический список
         url = soup[id]
         try:
             data = get_url(url)
@@ -82,7 +85,9 @@ def get_one_from_list_objects(soup):
             if data.find(class_="item-description-text"):
                 description = data.find(class_="item-description-text").text.strip()
             for image in data.find_all("div", class_="gallery-img-frame"):
-                images.append(image['data-url'])
+                tmp.append(image['data-url'])
+            print(tmp)
+            images = ', '.join(str(x) for x in tmp)
             list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
             result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description, 'img': images}
             print("\nRESULT:")
@@ -93,10 +98,24 @@ def get_one_from_list_objects(soup):
             print()
         if DEBUG: # если включен дебаг, то сбрасываем цикл на 2-м объявлении
             i += 1
-            if i ==2:
+            if i == 2:
                 break
         sleep(10)
     return result
+
+def SQLite3_Database(db, data):
+    connection = sqlite3.connect(db)
+    cursor = connection.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS base
+                  (id INTEGER, title TEXT NOT NULL, url TEXT, price INTEGER, list TEXT, description TEXT, img TEXT, datetime TEXT)''')
+    for id in data:
+        cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                       (id, data[id]['title'], data[id]['url'], data[id]['price'], data[id]['list'], data[id]['description'], data[id]['img']))
+    connection.commit()
+    # for row in cursor.execute('SELECT * FROM base where '):
+    #     print(row)
+    connection.close()
+
 
 logger.info("\n\nStart application")
 print("\nStart app wuth UserAgent: ", UserAgentNow)
@@ -113,6 +132,7 @@ if not get_list_urls:
 else:
     # Получил словарь с обявлениемя
     array_objects = get_one_from_list_objects(get_list_urls)  # список параметров
+    SQLite3_Database("database.db",array_objects)
     if DEBUG:
         print(array_objects)
 
