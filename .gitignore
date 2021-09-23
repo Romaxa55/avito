@@ -1,3 +1,5 @@
 /abc.html
 /tmp/*.html
 /app.log
+/venv/
+/.idea/
