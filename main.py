@@ -10,6 +10,8 @@ import logging
 # from fake_useragent import UserAgent
 import sqlite3
 import datetime
+import telegram
+
 
 
 #hello Roma
@@ -21,12 +23,17 @@ import datetime
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
+CONST_TOKEN_TELEGRAM = "2047879128:AAHjlrjYRxmPFrNJIxbEgw3MLbAsSJhBgHE"
+TELEGRAM_CHAT_ID = '294577419'
+
 # Колличество обявлений который спарим за раз, от 1 до 50
 CONST_NUM = 10
 
 # режим отладки вкл/выкл
 DEBUG = False
 UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
+
+
 
 # Добавил логер для отладки приложения, пишется все в app.log
 
@@ -38,8 +45,6 @@ if DEBUG:
     logger.setLevel(logging.DEBUG)
 else:
     logger.setLevel(logging.INFO)
-
-
 
 # Функция get запроса, возвращает объект html страницы, готовый для парсинга
 def get_url(url):
@@ -100,6 +105,13 @@ def get_one_from_list_objects(soup):
         sleep(3)
     return result
 
+#Функци отправки через телеграмм
+def TelegramSend(data):
+    images = data['img'].split(', ')
+    bot = telegram.Bot(token=CONST_TOKEN_TELEGRAM)
+    bot.sendPhoto(TELEGRAM_CHAT_ID, images[0], "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
+    sleep(1)
+
 def SQLite3_Database(db, data):
     connection = sqlite3.connect(db)
     cursor = connection.cursor()
@@ -111,12 +123,14 @@ def SQLite3_Database(db, data):
     for id in data:
         # Поверяю есть лив базе этой объявление по id
         cursor.execute("SELECT COUNT(*) FROM base WHERE id = ?", (id,))
-
         # Если нет, добавляю в базу
         if not bool(cursor.fetchone()[0]):
             logger.info("Id" + id + "not found, add in base")
             cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
                        (id, data[id]['title'], data[id]['url'], data[id]['price'], data[id]['list'], data[id]['description'], data[id]['img']))
+            # Отправляем сообщение через бота
+            TelegramSend(data[id])
+
         else:
             logger.info('Id' + id + 'found in base, skip...')
     connection.commit()
@@ -138,6 +152,9 @@ if not get_list_urls:
     logger.error('Пришел пустой ответ, завершаю аварийную работу')
 else:
     # Получил словарь с объявлениями
+    # telegramm class init
+
+
     array_objects = get_one_from_list_objects(get_list_urls)  # список параметров
     SQLite3_Database("database.db",array_objects)
     if DEBUG:
