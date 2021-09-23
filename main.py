@@ -22,8 +22,10 @@ import datetime
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
+# Сколько дней хранить архив в базе
+CONST_ARCHIVE_DAYS = 5
 # режим отладки вкл/выкл
-DEBUG = True
+DEBUG = False
 UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
 # Добавил логер для отладки приложения, пишется все в app.log
 # get named logger
@@ -107,10 +109,21 @@ def SQLite3_Database(db, data):
     connection = sqlite3.connect(db)
     cursor = connection.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS base
-                  (id INTEGER, title TEXT NOT NULL, url TEXT, price INTEGER, list TEXT, description TEXT, img TEXT, datetime TEXT)''')
+                  (id INTEGER, title TEXT NOT NULL, url TEXT, price INTEGER, list TEXT, description TEXT, img TEXT, dt datetime default current_timestamp)''')
+
+    #Удаляем старый забиси старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)
+    cursor.execute("DELETE FROM base WHERE date(dt) < date('now', '-5 days')")
     for id in data:
-        cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        # Поверяю есть лив базе этой объявление по id
+        cursor.execute("SELECT COUNT(*) FROM base WHERE id = ?", (id,))
+
+        # Если нет, добавляю в базу
+        if not bool(cursor.fetchone()[0]):
+            print("Id", id,"not found, add in base")
+            cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
                        (id, data[id]['title'], data[id]['url'], data[id]['price'], data[id]['list'], data[id]['description'], data[id]['img']))
+        else:
+            print('Id', id, 'found in base, skip...')
     connection.commit()
     # for row in cursor.execute('SELECT * FROM base where '):
     #     print(row)
