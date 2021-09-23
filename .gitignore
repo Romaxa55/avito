@@ -1,5 +1,9 @@
 /abc.html
 /tmp/*.html
 /app.log
+<<<<<<< HEAD
 /venv/
 /.idea/
+=======
+/.idea
+>>>>>>> a25695e2a65ba594168c2ee7d816dfd02109fb54
