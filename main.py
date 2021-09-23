@@ -8,7 +8,7 @@ from pathlib import Path    # Модуль для манипуляция с ди
 # import module
 from logging.handlers import TimedRotatingFileHandler
 from logging import Formatter
-from fake_useragent import UserAgent
+# from fake_useragent import UserAgent
 
 #hello Roma
 #hello Roman
@@ -21,8 +21,7 @@ CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI
 
 # режим отладки вкл/выкл
 DEBUG = False
-ua = UserAgent(cache=True)
-UserAgentNow = ua.random
+UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
 # Добавил логер для отладки приложения, пишется все в app.log
 # get named logger
 logger = logging.getLogger(__name__)
