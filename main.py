@@ -18,7 +18,7 @@ import datetime
 #hello guys!!!
 
 # Ссылка, с которой будем работать, строка в ссылке ASgCAQECA... -
-# это base64 в ней зашифрованы параметры поиска от 500руб до 5000руб
+# это base64, в ней зашифрованы параметры поиска от 500руб до 5000руб
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
@@ -42,7 +42,7 @@ logger.addHandler(handler)
 # set the logging level
 logger.setLevel(logging.DEBUG)
 
-# Функция get запроса, возвращает объект  html страницы готовый для парсинга
+# Функция get запроса, возвращает объект html страницы, готовый для парсинга
 def get_url(url):
     headers = {"User-Agent": UserAgentNow}
     s = requests.session()
@@ -56,7 +56,7 @@ def get_url(url):
     s.cookies.clear()
     return BeautifulSoup(r.content, 'lxml')
 
-#Функия возращает ссылки для каждого найденого обявления
+#Функция возвращает ссылки для каждого найденного объявления
 def get_urls_objects(soup):
     result = {}
     print("Parsed URLS...")
@@ -65,7 +65,7 @@ def get_urls_objects(soup):
         result[id] = 'https://www.avito.ru' + tag.find('a').get('href')
     return result
 
-# Функция парсит обявление и возращает в виде списка параметра см result[id] ниже
+# Функция парсит объявление и возращает в виде списка параметров, смотри result[id] ниже
 def get_one_from_list_objects(soup):
     # в переменую soup передается лист
     if DEBUG:
@@ -123,14 +123,14 @@ print("\nStart app wuth UserAgent: ", UserAgentNow)
 # Получили html код страницы и запихнули в переменую soup
 soup = get_url(CONST_URL)
 
-# Получили список ссылк в виде id = url
+# Получили список ссылок в виде id = url
 get_list_urls = get_urls_objects(soup) # Список обявлений
 
 #Проверяем, не пришел ли пустой ответ, не забанил ли нас по ip
 if not get_list_urls:
     logger.error('Пришел пустой ответ, завершаю аварийную работу')
 else:
-    # Получил словарь с обявлениемя
+    # Получил словарь с объявлениями
     array_objects = get_one_from_list_objects(get_list_urls)  # список параметров
     SQLite3_Database("database.db",array_objects)
     if DEBUG:
