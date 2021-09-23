@@ -20,7 +20,7 @@ CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
 # режим отладки вкл/выкл
-DEBUG = False
+DEBUG = True
 UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
 # Добавил логер для отладки приложения, пишется все в app.log
 # get named logger
@@ -72,6 +72,7 @@ def get_one_from_list_objects(soup):
         print("Parsed url id: ", id)
         price = "Цена не указана"
         description = "Описание нет"
+        images = [] #Динамический список
         url = soup[id]
         try:
             data = get_url(url)
@@ -80,8 +81,10 @@ def get_one_from_list_objects(soup):
                 price = data.find(class_="js-item-price").get('content')
             if data.find(class_="item-description-text"):
                 description = data.find(class_="item-description-text").text.strip()
+            for image in data.find_all("div", class_="gallery-img-frame"):
+                images.append(image['data-url'])
             list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
-            result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description}
+            result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description, 'img': images}
             print("\nRESULT:")
             print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
             print("\n")
