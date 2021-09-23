@@ -109,7 +109,10 @@ def get_one_from_list_objects(soup):
 def TelegramSend(data):
     images = data['img'].split(', ')
     bot = telegram.Bot(token=CONST_TOKEN_TELEGRAM)
-    bot.sendPhoto(TELEGRAM_CHAT_ID, images[0], "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
+    try:
+        bot.sendPhoto(TELEGRAM_CHAT_ID, images[0], "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
+    except:
+        logger.error("Ощибка")
     sleep(1)
 
 def SQLite3_Database(db, data):
