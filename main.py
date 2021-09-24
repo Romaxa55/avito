@@ -1,15 +1,11 @@
 #!/usr/bin/python3
 import logging
 
-import requests     #Люба для выполнения Get запросов
-from bs4 import BeautifulSoup   #Модуль для парсингша html
-from time import sleep      # Модуль для функции sleep
-from pathlib import Path    # Модуль для манипуляция с директориями
-# import module
+import requests
+from bs4 import BeautifulSoup
+from time import sleep
 import logging
-# from fake_useragent import UserAgent
 import sqlite3
-import datetime
 import telegram
 
 
@@ -18,24 +14,25 @@ import telegram
 #hello Roman
 #hello guys!!!
 
-# Ссылка, с которой будем работать, строка в ссылке ASgCAQECA... -
-# это base64, в ней зашифрованы параметры поиска от 500руб до 5000руб
+'''Ссылка, с которой будем работать, строка в ссылке ASgCAQECA... -
+это base64, в ней зашифрованы параметры поиска от 500руб до 5000руб'''
+
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
 CONST_TOKEN_TELEGRAM = "2047879128:AAHjlrjYRxmPFrNJIxbEgw3MLbAsSJhBgHE"
 TELEGRAM_CHAT_ID = '294577419'
 
-# Колличество обявлений который спарим за раз, от 1 до 50
+"""Колличество обявлений который спарим за раз, от 1 до 50"""
 CONST_NUM = 10
 
-# режим отладки вкл/выкл
+"""режим отладки вкл/выкл"""
 DEBUG = False
 UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
 
 
 
-# Добавил логер для отладки приложения, пишется все в app.log
+"""Добавил логер для отладки приложения, пишется все в app.log"""
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -46,7 +43,8 @@ if DEBUG:
 else:
     logger.setLevel(logging.INFO)
 
-# Функция get запроса, возвращает объект html страницы, готовый для парсинга
+"""Функция get запроса, возвращает объект html страницы, готовый для парсинга"""
+
 def get_url(url):
     headers = {"User-Agent": UserAgentNow}
     s = requests.session()
@@ -60,7 +58,7 @@ def get_url(url):
     s.cookies.clear()
     return BeautifulSoup(r.content, 'lxml')
 
-#Функция возвращает ссылки для каждого найденного объявления
+"""Функция возвращает ссылки для каждого найденного объявления"""
 def get_urls_objects(soup):
     result = {}
     logger.info("Parsed URLS...")
@@ -69,9 +67,9 @@ def get_urls_objects(soup):
         result[id] = 'https://www.avito.ru' + tag.find('a').get('href')
     return result
 
-# Функция парсит объявление и возращает в виде списка параметров, смотри result[id] ниже
+"""Функция парсит объявление и возращает в виде списка параметров, смотри result[id] ниже"""
 def get_one_from_list_objects(soup):
-    # в переменую soup передается лист
+    """в переменую soup передается лист"""
     i = 0
     num = 1
     result = {}  # обявил переменную ресульт как обект словарь
@@ -105,7 +103,7 @@ def get_one_from_list_objects(soup):
         sleep(3)
     return result
 
-#Функци отправки через телеграмм
+"""Функци отправки через телеграмм"""
 def TelegramSend(data):
     images = data['img'].split(', ')
     bot = telegram.Bot(token=CONST_TOKEN_TELEGRAM)
@@ -118,20 +116,20 @@ def TelegramSend(data):
 def SQLite3_Database(db, data):
     connection = sqlite3.connect(db)
     cursor = connection.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS base
-                  (id INTEGER, title TEXT NOT NULL, url TEXT, price INTEGER, list TEXT, description TEXT, img TEXT, dt datetime default current_timestamp)''')
+    cursor.execute("""CREATE TABLE IF NOT EXISTS base
+                  (id INTEGER, title TEXT NOT NULL, url TEXT, price INTEGER, list TEXT, description TEXT, img TEXT, dt datetime default current_timestamp)""")
 
-    #Удаляем старый забиси старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)
+    """Удаляем старый забиси старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)"""
     cursor.execute("DELETE FROM base WHERE date(dt) < date('now', '-5 days')")
     for id in data:
-        # Поверяю есть лив базе этой объявление по id
+        """Поверяю есть лив базе этой объявление по id"""
         cursor.execute("SELECT COUNT(*) FROM base WHERE id = ?", (id,))
-        # Если нет, добавляю в базу
+        """Если нет, добавляю в базу"""
         if not bool(cursor.fetchone()[0]):
             logger.info("Id" + id + "not found, add in base")
             cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
                        (id, data[id]['title'], data[id]['url'], data[id]['price'], data[id]['list'], data[id]['description'], data[id]['img']))
-            # Отправляем сообщение через бота
+            """Отправляем сообщение через бота"""
             TelegramSend(data[id])
 
         else:
@@ -144,21 +142,19 @@ def SQLite3_Database(db, data):
 
 logger.info("Start application")
 logger.info("User Agent: " + UserAgentNow)
-# Получили html код страницы и запихнули в переменую soup
+"""Получили html код страницы и запихнули в переменую soup"""
 soup = get_url(CONST_URL)
 
-# Получили список ссылок в виде id = url
-get_list_urls = get_urls_objects(soup) # Список обявлений
+"""Получили список ссылок в виде id = url"""
+get_list_urls = get_urls_objects(soup)
 
-#Проверяем, не пришел ли пустой ответ, не забанил ли нас по ip
+"""Проверяем, не пришел ли пустой ответ, не забанил ли нас по ip"""
 if not get_list_urls:
     logger.error('Пришел пустой ответ, завершаю аварийную работу')
 else:
-    # Получил словарь с объявлениями
-    # telegramm class init
+    """ Получил словарь с объявлениями"""
 
-
-    array_objects = get_one_from_list_objects(get_list_urls)  # список параметров
+    array_objects = get_one_from_list_objects(get_list_urls)  #список параметров
     SQLite3_Database("database.db",array_objects)
     if DEBUG:
         print(array_objects)
