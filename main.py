@@ -9,7 +9,6 @@ import sqlite3
 import telegram
 
 
-
 #hello Roma
 #hello Roman
 #hello guys!!!
