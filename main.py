@@ -1,11 +1,12 @@
 #!/usr/bin/python3
-import logging
 
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
 import logging
 import sqlite3
+from db import DB
+
 import telegram
 
 
@@ -23,7 +24,7 @@ CONST_TOKEN_TELEGRAM = "2047879128:AAHjlrjYRxmPFrNJIxbEgw3MLbAsSJhBgHE"
 TELEGRAM_CHAT_ID = '294577419'
 
 """Колличество обявлений который спарим за раз, от 1 до 50"""
-CONST_NUM = 10
+CONST_NUM = 2
 
 """режим отладки вкл/выкл"""
 DEBUG = False
@@ -112,31 +113,31 @@ def TelegramSend(data):
         logger.error("Ощибка")
     sleep(1)
 
-def SQLite3_Database(db, data):
-    connection = sqlite3.connect(db)
-    cursor = connection.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS base
-                  (id INTEGER, title TEXT NOT NULL, url TEXT, price INTEGER, list TEXT, description TEXT, img TEXT, dt datetime default current_timestamp)""")
+def SQLite3_Database(db_file, data):
+    """Иницилизация базы, созданые базы (файла)"""
+    db = DB(db_file)
 
-    """Удаляем старый забиси старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)"""
-    cursor.execute("DELETE FROM base WHERE date(dt) < date('now', '-5 days')")
+    """Создаем таблицу в базе, если она не создана"""
+    db.create_tables()
+
+    """Удаляем старый записи старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)"""
+    db.clearOld_record()
+
     for id in data:
-        """Поверяю есть лив базе этой объявление по id"""
-        cursor.execute("SELECT COUNT(*) FROM base WHERE id = ?", (id,))
+
         """Если нет, добавляю в базу"""
-        if not bool(cursor.fetchone()[0]):
+        if not db.record_exist(id):
             logger.info("Id" + id + "not found, add in base")
-            cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                       (id, data[id]['title'], data[id]['url'], data[id]['price'], data[id]['list'], data[id]['description'], data[id]['img']))
+            db.record_add(data)
+
             """Отправляем сообщение через бота"""
             TelegramSend(data[id])
 
         else:
             logger.info('Id' + id + 'found in base, skip...')
-    connection.commit()
-    # for row in cursor.execute('SELECT * FROM base where '):
-    #     print(row)
-    connection.close()
+
+    """Закрыли соединение с базой"""
+    db.close()
 
 
 logger.info("Start application")
