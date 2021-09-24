@@ -4,10 +4,12 @@ import requests
 from bs4 import BeautifulSoup
 from time import sleep
 import logging
-import sqlite3
 from db import DB
-
 import telegram
+try:
+    import configparser # Python 2
+except ImportError:
+    import ConfigParser as configparser # Python 3
 
 
 #hello Roma
