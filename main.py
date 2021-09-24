@@ -16,17 +16,16 @@ except ImportError:
 #hello Roman
 #hello guys!!!
 
-'''Ссылка, с которой будем работать, строка в ссылке ASgCAQECA... -
-это base64, в ней зашифрованы параметры поиска от 500руб до 5000руб'''
+config = configparser.ConfigParser()
 
 CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
            "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
 
 CONST_TOKEN_TELEGRAM = "2047879128:AAHjlrjYRxmPFrNJIxbEgw3MLbAsSJhBgHE"
-TELEGRAM_CHAT_ID = '294577419'
+TELEGRAM_CHAT_ID = '-1001550115864'
 
 """Колличество обявлений который спарим за раз, от 1 до 50"""
-CONST_NUM = 2
+CONST_NUM = 10
 
 """режим отладки вкл/выкл"""
 DEBUG = False
@@ -52,11 +51,7 @@ def get_url(url):
     s = requests.session()
     s.headers.update(headers)
     r = s.get(url, headers=headers)
-    ("PARSED URL: ", url)
-    if DEBUG:
-        Path("tmp/").mkdir(parents=True, exist_ok=True)
-        with open(f'tmp/{url[-10:]}.html', 'wb') as f:
-            f.write(r.content)
+    logger.info("PARSED URL: " + url)
     s.cookies.clear()
     return BeautifulSoup(r.content, 'lxml')
 
@@ -74,7 +69,7 @@ def get_one_from_list_objects(soup):
     """в переменую soup передается лист"""
     i = 0
     num = 1
-    result = {}  # обявил переменную ресульт как обект словарь
+    """обявил переменную ресульт как обект словарь"""
     for id in soup.keys():
         logger.info("Parsed url id: " + id)
         price = 0
@@ -82,6 +77,7 @@ def get_one_from_list_objects(soup):
         tmp = [] #Динамический список
         url = soup[id]
         logger.info("RESULT NUM:" + str(num))
+        result = {}
         try:
             data = get_url(url)
             title = data.find(class_="title-info-main").text.strip()
@@ -94,6 +90,9 @@ def get_one_from_list_objects(soup):
             images = ', '.join(str(x) for x in tmp)
             list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
             result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description, 'img': images}
+            """Добавление обявления в базу даннных  отправка в бот"""
+            SQLite3_Database("database.db", result)
+
             print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
         except(BeautifulSoup, EnvironmentError) as e:
             print("Exception is :", e)
@@ -129,35 +128,37 @@ def SQLite3_Database(db_file, data):
 
         """Если нет, добавляю в базу"""
         if not db.record_exist(id):
-            logger.info("Id" + id + "not found, add in base")
-            db.record_add(data)
+            logger.info("Id " + id + " not found, add in base")
+            db.record_add(id, data[id])
 
             """Отправляем сообщение через бота"""
             TelegramSend(data[id])
 
         else:
-            logger.info('Id' + id + 'found in base, skip...')
+            logger.info('Id ' + id + ' found in base, skip...')
 
     """Закрыли соединение с базой"""
     db.close()
 
+def main():
+    logger.info("Start application")
+    logger.info("User Agent: " + UserAgentNow)
+    """Получили html код страницы и запихнули в переменую soup"""
+    soup = get_url(CONST_URL)
 
-logger.info("Start application")
-logger.info("User Agent: " + UserAgentNow)
-"""Получили html код страницы и запихнули в переменую soup"""
-soup = get_url(CONST_URL)
+    """Получили список ссылок в виде id = url"""
+    get_list_urls = get_urls_objects(soup)
 
-"""Получили список ссылок в виде id = url"""
-get_list_urls = get_urls_objects(soup)
+    """Проверяем, не пришел ли пустой ответ, не забанил ли нас по ip"""
+    if not get_list_urls:
+        logger.error('Пришел пустой ответ, завершаю аварийную работу')
+    else:
+        """ Получил словарь с объявлениями"""
 
-"""Проверяем, не пришел ли пустой ответ, не забанил ли нас по ip"""
-if not get_list_urls:
-    logger.error('Пришел пустой ответ, завершаю аварийную работу')
-else:
-    """ Получил словарь с объявлениями"""
+        get_one_from_list_objects(get_list_urls)  # список параметров
 
-    array_objects = get_one_from_list_objects(get_list_urls)  #список параметров
-    SQLite3_Database("database.db",array_objects)
-    if DEBUG:
-        print(array_objects)
+
+if __name__ == '__main__':
+    main()
+
 

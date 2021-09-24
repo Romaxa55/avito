@@ -14,23 +14,25 @@ class DB:
                           price INTEGER, list TEXT, description TEXT, 
                           img TEXT, dt datetime default current_timestamp)""")
 
-    def record_exist(self,id):
+    def record_exist(self, id):
         """Проверка существует ли забись в базе"""
-        result = self.cursor.execute("SELECT `id` FROM `base` WHERE `id` = ?", (id,))
-        return bool(len(result.fetchall()))
+        result = self.cursor.execute("SELECT COUNT(*) FROM `base` WHERE `id` = ?", (id,))
+        return bool(result.fetchone()[0])
 
-    def record_add(self,data):
+    def record_add(self, id, data):
         """Добавляем азпись в базу"""
-        for id in data:
-            self.cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                       (id, data[id]['title'], data[id]['url'], data[id]['price'], data[id]['list'],
-                        data[id]['description'], data[id]['img']))
+        try:
+            result = self.cursor.execute("INSERT INTO base (id, title, url, price, list, description, img) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                        (id, data['title'], data['url'], data['price'], data['list'],data['description'], data['img']))
 
-    def clearOld_record(self, n=5):
+        except sqlite3.Error as e:
+            print(e)
+
+    def clearOld_record(self):
         """Чиста базы от старых записей старше n дней"""
-        days = f"-{n} days"
         self.cursor.execute("DELETE FROM base WHERE date(dt) < date('now', '-5 days')")
 
     def close(self):
         """Close coonnect DB"""
+        self.connection.commit()
         self.connection.close()
