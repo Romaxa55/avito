@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import os
 
 import requests
 from bs4 import BeautifulSoup
@@ -6,29 +7,30 @@ from time import sleep
 import logging
 from db import DB
 import telegram
+import re
 try:
     import configparser # Python 2
 except ImportError:
     import ConfigParser as configparser # Python 3
 
+config = configparser.ConfigParser()  # создаём объекта парсера
+conf_path = os.path.join(os.path.curdir, 'config.conf' )
+config.read(conf_path)  # читаем конфиг
 
 #hello Roma
 #hello Roman
 #hello guys!!!
 
-config = configparser.ConfigParser()
 
-CONST_URL = "https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0A" \
-           "UXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1"
+if not bool(re.match(r'^[\-|\d][0-9]+$',config['Telegram']['chat_id'])):
+    exit("Error Config Telegram chat_id in file " + conf_path)
+elif not bool(re.match(r'^[\d]+:[\w]{1,45}$',config['Telegram']['token'])):
+    exit("Error Config Telegram token in file " + conf_path + "\nget token on https://t.me/BotFather")
+elif config['Avito']['url'] == None:
+    exit("Error Config Avito url in file " + conf_path + "\nget token on https://t.me/BotFather")
 
-CONST_TOKEN_TELEGRAM = "2047879128:AAHjlrjYRxmPFrNJIxbEgw3MLbAsSJhBgHE"
-TELEGRAM_CHAT_ID = '-1001550115864'
 
-"""Колличество обявлений который спарим за раз, от 1 до 50"""
-CONST_NUM = 10
 
-"""режим отладки вкл/выкл"""
-DEBUG = False
 UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
 
 
@@ -39,13 +41,9 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger()
-if DEBUG:
-    logger.setLevel(logging.DEBUG)
-else:
-    logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 """Функция get запроса, возвращает объект html страницы, готовый для парсинга"""
-
 def get_url(url):
     headers = {"User-Agent": UserAgentNow}
     s = requests.session()
@@ -99,7 +97,7 @@ def get_one_from_list_objects(soup):
             print()
         i += 1
         num += 1
-        if i == CONST_NUM:
+        if i == int(config['Avito']['count_nums']):
             break
         sleep(3)
     return result
@@ -107,9 +105,9 @@ def get_one_from_list_objects(soup):
 """Функци отправки через телеграмм"""
 def TelegramSend(data):
     images = data['img'].split(', ')
-    bot = telegram.Bot(token=CONST_TOKEN_TELEGRAM)
+    bot = telegram.Bot(token=config['Telegram']['token'])
     try:
-        bot.sendPhoto(TELEGRAM_CHAT_ID, images[0], "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
+        bot.sendPhoto(config['Telegram']['chat_id'], images[0], "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
     except:
         logger.error("Ощибка")
     sleep(1)
@@ -144,7 +142,7 @@ def main():
     logger.info("Start application")
     logger.info("User Agent: " + UserAgentNow)
     """Получили html код страницы и запихнули в переменую soup"""
-    soup = get_url(CONST_URL)
+    soup = get_url(config['Avito']['url'])
 
     """Получили список ссылок в виде id = url"""
     get_list_urls = get_urls_objects(soup)
