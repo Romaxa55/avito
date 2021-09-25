@@ -13,7 +13,7 @@ try:
 except ImportError:
     import ConfigParser as configparser # Python 3
 
-config = configparser.ConfigParser()  # создаём объекта парсера
+config = configparser.ConfigParser()  # создаём объект парсера
 conf_path = os.path.join(os.path.curdir, 'config.conf' )
 config.read(conf_path)  # читаем конфиг
 
@@ -67,11 +67,11 @@ def get_one_from_list_objects(soup):
     """в переменую soup передается лист"""
     i = 0
     num = 1
-    """обявил переменную ресульт как обект словарь"""
+    """обявил переменную result как объект словарь"""
     for id in soup.keys():
         logger.info("Parsed url id: " + id)
         price = 0
-        description = "Описание нет"
+        description = "Описания нет"
         tmp = [] #Динамический список
         url = soup[id]
         logger.info("RESULT NUM:" + str(num))
@@ -88,7 +88,7 @@ def get_one_from_list_objects(soup):
             images = ', '.join(str(x) for x in tmp)
             list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
             result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description, 'img': images}
-            """Добавление обявления в базу даннных  отправка в бот"""
+            """Добавление объявления в базу данных,  отправка в бот"""
             SQLite3_Database("database.db", result)
 
             print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
@@ -102,24 +102,24 @@ def get_one_from_list_objects(soup):
         sleep(3)
     return result
 
-"""Функци отправки через телеграмм"""
+"""Функция отправки через телеграмм"""
 def TelegramSend(data):
     images = data['img'].split(', ')
     bot = telegram.Bot(token=config['Telegram']['token'])
     try:
         bot.sendPhoto(config['Telegram']['chat_id'], images[0], "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
     except:
-        logger.error("Ощибка")
+        logger.error("Ошибка")
     sleep(1)
 
 def SQLite3_Database(db_file, data):
-    """Иницилизация базы, созданые базы (файла)"""
+    """Иницилизация базы, создание базы (файла)"""
     db = DB(db_file)
 
     """Создаем таблицу в базе, если она не создана"""
     db.create_tables()
 
-    """Удаляем старый записи старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)"""
+    """Удаляем старые записи старше CONST_ARCHIVE_DAYS дней (по умолчанию стоит 5)"""
     db.clearOld_record()
 
     for id in data:
@@ -141,13 +141,13 @@ def SQLite3_Database(db_file, data):
 def main():
     logger.info("Start application")
     logger.info("User Agent: " + UserAgentNow)
-    """Получили html код страницы и запихнули в переменую soup"""
+    """Получили html код страницы и запихнули в переменную soup"""
     soup = get_url(config['Avito']['url'])
 
     """Получили список ссылок в виде id = url"""
     get_list_urls = get_urls_objects(soup)
 
-    """Проверяем, не пришел ли пустой ответ, не забанил ли нас по ip"""
+    """Проверяем, не пришел ли пустой ответ, не забанили ли нас по ip"""
     if not get_list_urls:
         logger.error('Пришел пустой ответ, завершаю аварийную работу')
     else:
