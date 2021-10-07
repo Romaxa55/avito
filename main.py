@@ -8,10 +8,7 @@ import logging
 from db import DB
 import telegram
 import re
-try:
-    import configparser # Python 2
-except ImportError:
-    import ConfigParser as configparser # Python 3
+import ConfigParser as configparser # Python 3
 
 config = configparser.ConfigParser()  # создаём объект парсера
 conf_path = os.path.join(os.path.curdir, 'config.conf' )
