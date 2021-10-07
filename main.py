@@ -33,7 +33,7 @@ def validator_config_env():
     try:
         if not bool(re.match(r'^[\-|\d][0-9]+$', get_my_env_var('TELEGRAM_CHAT_ID'))):
             exit("Error Telegram chat_id " + get_my_env_var('TELEGRAM_CHAT_ID'))
-        elif not bool(re.match(r'^[\d]+:[\w]{1,45}$', get_my_env_var('TELEGRAM_CHAT_ID'))):
+        elif not bool(re.match(r'^[\d]+:[\w]{1,45}$', get_my_env_var('TELEGRAM_TOKEN'))):
             exit("Error Telegram token " + get_my_env_var('TELEGRAM_TOKEN') + "\nget token on https://t.me/BotFather")
         elif get_my_env_var('AVITO_PARSE_URL') is None:
             exit("Error Avito url " + get_my_env_var('AVITO_PARSE_URL') + "\nget token on https://t.me/BotFather")
