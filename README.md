@@ -20,7 +20,7 @@ docker build -t avito .
 **Запусти команду**
 ```sh
 # Запуск контейнера
-docker run -it --rm --name Avito_Parser -v .:/usr/src/app/ \
+docker run -it --rm --name Avito_Parser -v db:/usr/src/app/ \
 -e TELEGRAM_CHAT_ID=test \
 -e TELEGRAM_TOKEN=12345 \
 -e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" \
@@ -42,3 +42,5 @@ docker run -it --rm --name Avito_Parser -v .:/usr/src/app/ \
 -e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" \
 romaxa55/avito
 ```
+
+<!--  -e TELEGRAM_CHAT_ID=test -e TELEGRAM_TOKEN=12345 -e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" -->
