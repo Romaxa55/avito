@@ -14,10 +14,10 @@ _Этот репозиторий еще в работе._
 ### Пример использлвания
 
 **Запусти команду**
-
-`docker run -it --rm --name Avito_Parser \ 
+```console
+docker run -it --rm --name Avito_Parser \ 
 -e TELEGRAM_CHAT_ID=test \ 
 -e TELEGRAM_TOKEN=12345 \ 
 -e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" \ 
-romaxa55/avito`
-
+romaxa55/avito
+```
