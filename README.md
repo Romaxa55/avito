@@ -9,7 +9,9 @@ _Этот репозиторий еще в работе._
 
 ###  Установка
 
-`docker pull ellerbrock/bash-it`
+```console
+docker pull ellerbrock/bash-it
+```
 
 ### Пример использлвания
 
