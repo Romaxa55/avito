@@ -24,7 +24,7 @@ docker run -it --rm --name Avito_Parser -v -v local-db:/usr/src/app/ \
 -e TELEGRAM_CHAT_ID=test \
 -e TELEGRAM_TOKEN=12345 \
 -e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" \
-romaxa55/avito
+avito
 ```
 
 
