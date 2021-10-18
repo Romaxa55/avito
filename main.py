@@ -106,7 +106,7 @@ def get_one_from_list_objects(soup):
         num += 1
         if i == 30:
             break
-        sleep(3)
+        sleep(5)
     return result
 
 
