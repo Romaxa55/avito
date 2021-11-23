@@ -19,10 +19,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-# hello Roma
-# hello Roman
-# hello guys!!!
-
 def get_my_env_var(env_var):
     if env_var in os.environ:
         return os.environ[env_var]
