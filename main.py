@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import random
 
 import requests
 from bs4 import BeautifulSoup
@@ -8,13 +9,14 @@ import logging
 from db import DB
 import telegram
 import re
+import json
 
-UserAgentNow = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36"
+user_agent_now = ""
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 def get_my_env_var(env_var):
@@ -41,7 +43,7 @@ def validator_config_env():
 
 
 def get_url(url):
-    headers = {"User-Agent": UserAgentNow}
+    headers = {"User-Agent": user_agent_now}
     s = requests.session()
     s.headers.update(headers)
     r = s.get(url, headers=headers)
@@ -71,25 +73,25 @@ def get_one_from_list_objects(soup):
     num = 1
     """обявил переменную result как объект словарь"""
     for id in soup.keys():
-        logger.info("Parsed url id: " + id)
-        price = 0
-        description = "Описания нет"
-        tmp = []  # Динамический список
-        url = soup[id]
-        logger.info("RESULT NUM:" + str(num))
-        result = {}
-        try:
-            data = get_url(url)
-            if data is not None:
+        db = DB("database.db")
+        if db.record_exist(id):
+            logger.info('Id ' + id + ' found in base, skip...')
+            result = {}
+        else:
+            logger.info("Parsed url id: " + id)
+            price = 0
+            description = "Описания нет"
+            tmp = []  # Динамический список
+            url = soup[id]
+            logger.info("RESULT NUM:" + str(num))
+            result = {}
+            try:
+                data = get_url(url)
                 title = data.find(class_="title-info-main").text.strip()
-                if data.find(class_="js-item-price").get('content') is not None:
+                if data.find(class_="js-item-price").get('content'):
                     price = data.find(class_="js-item-price").get('content')
-                else:
-                    price = "Не указана"
-                if data.find(class_="item-description-text") is not None:
+                if data.find(class_="item-description-text"):
                     description = data.find(class_="item-description-text").text.strip()
-                else:
-                    description = "Не указан"
                 for image in data.find_all("div", class_="gallery-img-frame"):
                     tmp.append(image['data-url'])
                 images = ', '.join(str(x) for x in tmp)
@@ -100,14 +102,16 @@ def get_one_from_list_objects(soup):
                 SQLite3_Database("database.db", result)
 
                 print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
-        except(BeautifulSoup, EnvironmentError) as e:
-            print("Exception is :", e)
-            print()
+            except(BeautifulSoup, EnvironmentError) as e:
+                print("Exception is :", e)
+                print()
+        """Закрыли соединение с базой"""
+        db.close()
         i += 1
         num += 1
         if i == 10:
             break
-        sleep(10)
+        sleep(2)
     return result
 
 
@@ -154,20 +158,24 @@ def SQLite3_Database(db_file, data):
 
 def main():
     try:
+        f = open('user_agents.json')
+        # returns JSON object as
+        user_agent_now = random.choice(json.load(f))
+        # Closing file
+        f.close()
+
         logger.info("Start application")
-        logger.info("User Agent: " + UserAgentNow)
+        logger.info("User Agent: " + user_agent_now)
         """Получили html код страницы и запихнули в переменную soup"""
 
         validator_config_env()
         soup = get_url(os.environ.get('AVITO_PARSE_URL'))
-        if soup is not None:
-            """Получили список ссылок в виде id = url"""
-            get_list_urls = get_urls_objects(soup)
-        else:
-            logger.error('Пришел пустой ответ, завершаю аварийную работу')
+
+        """Получили список ссылок в виде id = url"""
+        get_list_urls = get_urls_objects(soup)
 
         """Проверяем, не пришел ли пустой ответ, не забанили ли нас по ip"""
-        if get_list_urls is None:
+        if not get_list_urls:
             logger.error('Пришел пустой ответ, завершаю аварийную работу')
         else:
             """ Получил словарь с объявлениями"""
@@ -179,4 +187,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while 1:
+        main()
