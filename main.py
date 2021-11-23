@@ -84,29 +84,34 @@ def get_one_from_list_objects(soup):
         result = {}
         try:
             data = get_url(url)
-            title = data.find(class_="title-info-main").text.strip()
-            if data.find(class_="js-item-price").get('content'):
-                price = data.find(class_="js-item-price").get('content')
-            if data.find(class_="item-description-text"):
-                description = data.find(class_="item-description-text").text.strip()
-            for image in data.find_all("div", class_="gallery-img-frame"):
-                tmp.append(image['data-url'])
-            images = ', '.join(str(x) for x in tmp)
-            list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
-            result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description,
-                          'img': images}
-            """Добавление объявления в базу данных,  отправка в бот"""
-            SQLite3_Database("database.db", result)
+            if data is not None:
+                title = data.find(class_="title-info-main").text.strip()
+                if data.find(class_="js-item-price").get('content') is not None:
+                    price = data.find(class_="js-item-price").get('content')
+                else:
+                    price = "Не указана"
+                if data.find(class_="item-description-text") is not None:
+                    description = data.find(class_="item-description-text").text.strip()
+                else:
+                    description = "Не указан"
+                for image in data.find_all("div", class_="gallery-img-frame"):
+                    tmp.append(image['data-url'])
+                images = ', '.join(str(x) for x in tmp)
+                list_params = '\n'.join([str(x.text.strip()) for x in data.find(class_="item-params-list").find_all("li")])
+                result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description,
+                              'img': images}
+                """Добавление объявления в базу данных,  отправка в бот"""
+                SQLite3_Database("database.db", result)
 
-            print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
+                print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
         except(BeautifulSoup, EnvironmentError) as e:
             print("Exception is :", e)
             print()
         i += 1
         num += 1
-        if i == 30:
+        if i == 10:
             break
-        sleep(5)
+        sleep(10)
     return result
 
 
@@ -159,12 +164,14 @@ def main():
 
         validator_config_env()
         soup = get_url(os.environ.get('AVITO_PARSE_URL'))
-
-        """Получили список ссылок в виде id = url"""
-        get_list_urls = get_urls_objects(soup)
+        if soup is not None:
+            """Получили список ссылок в виде id = url"""
+            get_list_urls = get_urls_objects(soup)
+        else:
+            logger.error('Пришел пустой ответ, завершаю аварийную работу')
 
         """Проверяем, не пришел ли пустой ответ, не забанили ли нас по ip"""
-        if not get_list_urls:
+        if get_list_urls is None:
             logger.error('Пришел пустой ответ, завершаю аварийную работу')
         else:
             """ Получил словарь с объявлениями"""
