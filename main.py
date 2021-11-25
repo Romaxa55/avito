@@ -4,27 +4,21 @@ import logging
 import os
 import random
 import re
-
-import urllib3
-import socket
 from time import sleep
-
 import requests
 import telegram
 from bs4 import BeautifulSoup
-
 from db import DB
 
-socket.setdefaulttimeout(30)
+
+
 global_proxy = ""
 user_agent_now = ""
 DB_FILE="database.db"
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
 
 
 def check_proxy(proxy):
@@ -60,7 +54,7 @@ def check_proxy(proxy):
     except requests.exceptions.Timeout as e:
         logger.error('Error! Connection Timeout!')
         return False
-    except urllib3.exceptions.ProxySchemeUnknown as e:
+    except requests.exceptions.ProxySchemeUnknown as e:
         logger.error('ERROR unkown Proxy Scheme!')
         return False
     except requests.exceptions.TooManyRedirects as e:
@@ -90,16 +84,20 @@ def validator_config_env():
 
 
 def get_url(url,use_proxy=False):
-    headers = {"User-Agent": user_agent_now}
-    s = requests.session()
-    s.headers.update(headers)
-    if use_proxy:
-        r = s.get(url, proxies={'https':'http://' + global_proxy},allow_redirects=True)
-    else:
-        r = s.get(url)
-    logger.info("GET request for URL: " + url)
-    s.cookies.clear()
-    return BeautifulSoup(r.content, 'lxml')
+    try:
+        headers = {"User-Agent": user_agent_now}
+        s = requests.session()
+        s.headers.update(headers)
+        if use_proxy:
+            r = s.get(url, proxies={'https': 'http://' + global_proxy}, allow_redirects=True)
+        else:
+            r = s.get(url)
+        logger.info("GET request for URL: " + url)
+        s.cookies.clear()
+        return BeautifulSoup(r.content, 'lxml')
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+        pass
+
 
 
 """Функция возвращает ссылки для каждого найденного объявления"""
@@ -217,7 +215,7 @@ def proxy_parse():
             proxies = ip_address + ":" + ip_port
             if check_proxy(proxies):
                 return proxies
-    return ""
+    return 0
 def main():
     try:
         f = open('user_agents.json')
@@ -241,7 +239,7 @@ def main():
         """Получили html код страницы и запихнули в переменную soup"""
 
         validator_config_env()
-        soup = get_url(os.environ.get('AVITO_PARSE_URL'),True)
+        soup = get_url(os.environ.get('AVITO_PARSE_URL'), True)
 
         """Получили список ссылок в виде id = url"""
         get_list_urls = get_urls_objects(soup)
