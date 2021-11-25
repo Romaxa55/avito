@@ -29,7 +29,7 @@ logger.setLevel(logging.INFO)
 
 def check_proxy(proxy):
     URL = "https://www.avito.ru"
-    TIMEOUT = (4, 30)
+    TIMEOUT = (3, 20)
     try:
         session = requests.Session()
         session.headers['User-Agent'] = user_agent_now
