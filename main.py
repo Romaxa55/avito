@@ -18,6 +18,7 @@ from db import DB
 socket.setdefaulttimeout(30)
 global_proxy = ""
 user_agent_now = ""
+DB_FILE="database.db"
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -122,7 +123,8 @@ def get_one_from_list_objects(soup):
     num = 1
     """обявил переменную result как объект словарь"""
     for id in soup.keys():
-        db = DB("database.db")
+        global DB_FILE
+        db = DB(DB_FILE)
         if db.record_exist(id):
             logger.info('Id ' + id + ' found in base, skip...')
             result = {}
@@ -148,7 +150,7 @@ def get_one_from_list_objects(soup):
                 result[id] = {'url': url, 'title': title, 'price': price, 'list': list_params, 'description': description,
                               'img': images}
                 """Добавление объявления в базу данных,  отправка в бот"""
-                SQLite3_Database("database.db", result)
+                SQLite3_Database(DB_FILE, result)
 
                 print("\n".join("{}:\t{}".format(k, v) for k, v in result[id].items()))
             except(BeautifulSoup, EnvironmentError) as e:
@@ -222,6 +224,12 @@ def main():
         # returns JSON object as
         global user_agent_now
         global global_proxy
+
+        db = DB(DB_FILE)
+
+        """Создаем таблицу в базе, если она не создана"""
+        db.create_tables()
+        db.close()
 
         user_agent_now = random.choice(json.load(f))
         global_proxy = proxy_parse()
