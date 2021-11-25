@@ -14,36 +14,16 @@ _Этот репозиторий еще в работе._
 ```sh
 docker pull romaxa55/avito
 ```
-### ИЛИ
 
-####  Установка из репозитория
+### Рапуск
 ```sh
-git clone https://github.com/Romaxa55/avito.git
-cd avito
-docker build -t avito .
+export TELEGRAM_CHAT_ID=тут айди чата \
+export TELEGRAM_TOKEN=Токен \
+AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?cd=1&f=ASgCAQECAUDwvA0UiNI0AUXGmgwUeyJmcm9tIjowLCJ0byI6MzAwMH0&s=104&user=1" \
+
+docker run -d --restart always --name parser -v local-folder-db:/usr/src/app/ -e TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID -e TELEGRAM_TOKEN=$TELEGRAM_TOKEN -e AVITO_PARSE_URL=$AVITO_PARSE_URL romaxa55/avito
 ```
 
-**Запусти команду**
-```sh
-# Запуск контейнера
-docker run -it --rm --name Avito_Parser -v local-db:/usr/src/app/ \
--e TELEGRAM_CHAT_ID=test \
--e TELEGRAM_TOKEN=12345 \
--e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" \
-avito
-```
-
-
-
-
-**Запусти команду**
-```sh
-docker run -it --rm --name Avito_Parser -v local-db:/usr/src/app/ \
--e TELEGRAM_CHAT_ID=test \
--e TELEGRAM_TOKEN=12345 \
--e AVITO_PARSE_URL="https://www.avito.ru/sankt-peterburg/noutbuki?f=ASgCAQECAUDwvA0UiNI0AUXGmgwWeyJmcm9tIjo1MDAsInRvIjo1MDAwfQ&user=1" \
-romaxa55/avito
-```
 
 <!--
 docker run -it --rm --name Avito_Parser -v local-db:/usr/src/app/ \
