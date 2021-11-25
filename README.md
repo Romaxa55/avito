@@ -40,6 +40,25 @@ docker ps
 CONTAINER ID   IMAGE            COMMAND               CREATED         STATUS          PORTS     NAMES
 5ef1f05a818d   romaxa55/avito   "python3 ./main.py"   4 minutes ago   Up 14 seconds             parser
 ```
+```sh
+sudo tail -f `docker inspect --format='{{.LogPath}}' parser`
+
+{"log":"2021-11-25 21:55:00,649 - root - INFO - Checking 47.243.160.201:59394\n","stream":"stderr","time":"2021-11-25T21:55:00.650066054Z"}
+{"log":"2021-11-25 21:55:04,584 - root - ERROR - Bad status code 47.243.160.201:59394\n","stream":"stderr","time":"2021-11-25T21:55:04.588713991Z"}
+{"log":"2021-11-25 21:55:04,586 - root - INFO - Checking 47.243.119.209:59394\n","stream":"stderr","time":"2021-11-25T21:55:04.588846193Z"}
+{"log":"2021-11-25 21:55:07,591 - root - ERROR - Error!\n","stream":"stderr","time":"2021-11-25T21:55:07.594531502Z"}
+{"log":"2021-11-25 21:55:07,592 - root - INFO - Checking 12.218.209.130:53281\n","stream":"stderr","time":"2021-11-25T21:55:07.594793306Z"}
+{"log":"2021-11-25 21:55:09,713 - root - ERROR - Bad status code 12.218.209.130:53281\n","stream":"stderr","time":"2021-11-25T21:55:09.715962069Z"}
+{"log":"2021-11-25 21:55:09,714 - root - INFO - Checking 113.160.206.37:55138\n","stream":"stderr","time":"2021-11-25T21:55:09.716110671Z"}
+{"log":"2021-11-25 21:55:14,826 - root - ERROR - Bad status code 113.160.206.37:55138\n","stream":"stderr","time":"2021-11-25T21:55:14.82940632Z"}
+{"log":"2021-11-25 21:55:14,828 - root - INFO - Checking 202.169.244.181:8181\n","stream":"stderr","time":"2021-11-25T21:55:14.829557822Z"}
+
+
+
+```
+
+
+
 <!--
 docker run -it --rm --name Avito_Parser -v local-db:/usr/src/app/ \
 -e TELEGRAM_CHAT_ID=-1001550115864 \
