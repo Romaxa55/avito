@@ -1,16 +1,23 @@
 #!/usr/bin/python3
+import json
+import logging
 import os
 import random
+import re
+from typing import Any, Union
+
+import urllib3
+import socket
+from time import sleep
 
 import requests
-from bs4 import BeautifulSoup
-from time import sleep
-import logging
-from db import DB
 import telegram
-import re
-import json
+from bs4 import BeautifulSoup
 
+from db import DB
+
+socket.setdefaulttimeout(30)
+global_proxy = ""
 user_agent_now = ""
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -19,13 +26,53 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+
+def check_proxy(proxy):
+    URL = "https://www.avito.ru"
+    TIMEOUT = (4, 30)
+    try:
+        session = requests.Session()
+        session.headers['User-Agent'] = user_agent_now
+        session.max_redirects = 300
+
+        logger.info('Checking ' + proxy)
+        r = session.get(URL, proxies={'https':'http://' + proxy}, timeout=TIMEOUT,allow_redirects=True)
+
+        if r.ok:
+            logger.info('Code  200 for ' + proxy )
+            if "7iEzRRMJ2_0p66pVS7wTYYvhZZSFBdzL5FVml4IKUS0" in r.text:
+                logger.info('Nice work with Avito proxy is ' + proxy)
+                return True
+            else:
+                logger.info('Cant load page Avito, bad proxy ' + proxy)
+        else:
+            logger.error('Bad status code ' + proxy )
+
+    except requests.exceptions.ConnectionError as e:
+        logger.error('Error!')
+        return False
+    except requests.exceptions.ConnectTimeout as e:
+        logger.error('Error,Timeout!')
+        return False
+    except requests.exceptions.HTTPError as e:
+        logger.error('HTTP ERROR!')
+        return False
+    except requests.exceptions.Timeout as e:
+        logger.error('Error! Connection Timeout!')
+        return False
+    except urllib3.exceptions.ProxySchemeUnknown as e:
+        logger.error('ERROR unkown Proxy Scheme!')
+        return False
+    except requests.exceptions.TooManyRedirects as e:
+        logger.error('ERROR! Too many redirects!')
+        return False
+
 def get_my_env_var(env_var):
     if env_var in os.environ:
         return os.environ[env_var]
     else:
         logger.error(env_var + ' env does not exist')
         exit(0)
-
 
 def validator_config_env():
     try:
@@ -42,12 +89,15 @@ def validator_config_env():
 """Функция get запроса, возвращает объект html страницы, готовый для парсинга"""
 
 
-def get_url(url):
+def get_url(url,use_proxy=False):
     headers = {"User-Agent": user_agent_now}
     s = requests.session()
     s.headers.update(headers)
-    r = s.get(url, headers=headers)
-    logger.info("PARSED URL: " + url)
+    if use_proxy:
+        r = s.get(url, proxies={'https':'http://' + global_proxy},allow_redirects=True)
+    else:
+        r = s.get(url)
+    logger.info("GET request for URL: " + url)
     s.cookies.clear()
     return BeautifulSoup(r.content, 'lxml')
 
@@ -86,7 +136,7 @@ def get_one_from_list_objects(soup):
             logger.info("RESULT NUM:" + str(num))
             result = {}
             try:
-                data = get_url(url)
+                data = get_url(url, True)
                 title = data.find(class_="title-info-main").text.strip()
                 if data.find(class_="js-item-price").get('content'):
                     price = data.find(class_="js-item-price").get('content')
@@ -155,12 +205,27 @@ def SQLite3_Database(db_file, data):
     """Закрыли соединение с базой"""
     db.close()
 
-
+def proxy_parse():
+    proxy_page_html = get_url("https://www.sslproxies.org")
+    proxies = []
+    for tag in proxy_page_html.find_all("tr"):
+        cells = tag.findAll("td")
+        if len(cells) == 8:
+            ip_address = cells[0].find(text=True)
+            ip_port = cells[1].find(text=True)
+            proxies = ip_address + ":" + ip_port
+            if check_proxy(proxies):
+                return proxies
+    return ""
 def main():
     try:
         f = open('user_agents.json')
         # returns JSON object as
+        global user_agent_now
+        global global_proxy
+
         user_agent_now = random.choice(json.load(f))
+        global_proxy = proxy_parse()
         # Closing file
         f.close()
 
@@ -169,7 +234,7 @@ def main():
         """Получили html код страницы и запихнули в переменную soup"""
 
         validator_config_env()
-        soup = get_url(os.environ.get('AVITO_PARSE_URL'))
+        soup = get_url(os.environ.get('AVITO_PARSE_URL'),True)
 
         """Получили список ссылок в виде id = url"""
         get_list_urls = get_urls_objects(soup)
