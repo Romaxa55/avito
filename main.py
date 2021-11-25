@@ -4,7 +4,6 @@ import logging
 import os
 import random
 import re
-from typing import Any, Union
 
 import urllib3
 import socket
