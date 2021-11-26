@@ -137,7 +137,7 @@ def get_one_from_list_objects(soup):
             result = {}
             try:
                 data = get_url(url, True)
-                if data.find(class_="title-info-main").text.strip():
+                if data.find(class_="title-info-main"):
                     title = data.find(class_="title-info-main").text.strip()
                 if data.find(class_="js-item-price").get('content'):
                     price = data.find(class_="js-item-price").get('content')
