@@ -136,7 +136,7 @@ def get_one_from_list_objects(soup):
             logger.info("RESULT NUM:" + str(num))
             result = {}
             try:
-                data = get_url(url, False)
+                data = get_url(url, True)
                 if data.find(class_="title-info-main").text.strip():
                     title = data.find(class_="title-info-main").text.strip()
                 if data.find(class_="js-item-price").get('content'):
@@ -245,7 +245,7 @@ def main():
         """Получили html код страницы и запихнули в переменную soup"""
 
         validator_config_env()
-        soup = get_url(os.environ.get('AVITO_PARSE_URL'), False)
+        soup = get_url(os.environ.get('AVITO_PARSE_URL'), True)
 
         """Получили список ссылок в виде id = url"""
         get_list_urls = get_urls_objects(soup)
