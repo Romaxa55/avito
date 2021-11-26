@@ -238,7 +238,7 @@ def main():
         user_agent_now = random.choice(json.load(f))
         # Closing file
         f.close()
-        #global_proxy = proxy_parse()
+        global_proxy = proxy_parse()
         # exit(0)
         logger.info("Start application")
         logger.info("User Agent: " + user_agent_now)
