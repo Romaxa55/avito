@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 from db import DB
 
 
-
 global_proxy = ""
 user_agent_now = ""
 DB_FILE="database.db"
@@ -19,6 +18,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
 
 
 def check_proxy(proxy):
@@ -130,13 +130,15 @@ def get_one_from_list_objects(soup):
             logger.info("Parsed url id: " + id)
             price = 0
             description = "Описания нет"
+            title = "Ошидка парсинга заголовка"
             tmp = []  # Динамический список
             url = soup[id]
             logger.info("RESULT NUM:" + str(num))
             result = {}
             try:
                 data = get_url(url, True)
-                title = data.find(class_="title-info-main").text.strip()
+                if data.find(class_="title-info-main").text.strip():
+                    title = data.find(class_="title-info-main").text.strip()
                 if data.find(class_="js-item-price").get('content'):
                     price = data.find(class_="js-item-price").get('content')
                 if data.find(class_="item-description-text"):
@@ -171,10 +173,12 @@ def TelegramSend(data):
     images = data['img'].split(', ')
     bot = telegram.Bot(token=os.environ.get('TELEGRAM_TOKEN'))
     try:
+        logger.info("Send message to" + os.environ.get('TELEGRAM_CHAT_ID') + "With data "+  data['price'] +
+                    "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
         bot.sendPhoto(os.environ.get('TELEGRAM_CHAT_ID'), images[0],
                       "" + data['price'] + "руб\n" + data['url'] + "\n" + data['list'] + "\n" + data['description'])
     except:
-        logger.error("Ошибка")
+        logger.error("Ошибка отправки соощения")
     sleep(1)
 
 
@@ -212,9 +216,11 @@ def proxy_parse():
         if len(cells) == 8:
             ip_address = cells[0].find(text=True)
             ip_port = cells[1].find(text=True)
-            proxies = ip_address + ":" + ip_port
+            proxies = (ip_address + ":" + ip_port)
+
             if check_proxy(proxies):
                 return proxies
+
     return 0
 def main():
     try:
@@ -230,10 +236,10 @@ def main():
         db.close()
 
         user_agent_now = random.choice(json.load(f))
-        global_proxy = proxy_parse()
         # Closing file
         f.close()
-
+        global_proxy = proxy_parse()
+        # exit(0)
         logger.info("Start application")
         logger.info("User Agent: " + user_agent_now)
         """Получили html код страницы и запихнули в переменную soup"""
