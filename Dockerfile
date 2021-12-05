@@ -4,5 +4,5 @@ ARG TELEGRAM_TOKEN
 ARG AVITO_PARSE_URL
 WORKDIR /usr/src/app
 COPY requirements.txt db.py main.py user_agents.json test_main.py  ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 CMD [ "python", "./main.py" ]
