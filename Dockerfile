@@ -1,8 +1,6 @@
-FROM python:3
-#ARG TELEGRAM_CHAT_ID
-#ARG TELEGRAM_TOKEN
-#ARG AVITO_PARSE_URL
+FROM python:3.7-slim
+COPY requirements.txt /usr/src/app/requirements.txt
+RUN pip3 install --no-cache-dir -r /usr/src/app/requirements.txt
+COPY . /usr/src/app/
 WORKDIR /usr/src/app
-COPY requirements.txt db.py main.py user_agents.json test_main.py  ./
-RUN pip3 install --no-cache-dir -r requirements.txt
 CMD [ "python", "./main.py" ]

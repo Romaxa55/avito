@@ -1,0 +1,6 @@
+.git
+*.md
+.cache
+.gitignore
+telebot_test.py
+
