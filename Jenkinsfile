@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Build') {
             agent {
-                master {
+                any {
                     image 'python:2-alpine'
                 }
             }
